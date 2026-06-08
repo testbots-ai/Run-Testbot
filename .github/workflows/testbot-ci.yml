@@ -1,0 +1,76 @@
+name: Run Test Bot CI/CD
+
+on:
+  workflow_dispatch:
+    inputs:
+      test_bot_id:
+        description: 'Override testBotId (leave empty to use configs/testbot-config.json)'
+        required: false
+        default: ''
+      environment:
+        description: 'Target environment'
+        required: false
+        default: 'dev'
+        type: choice
+        options:
+          - dev
+          - staging
+          - prod
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  run-testbot:
+    name: 🤖 Run Test Bot
+    runs-on: ubuntu-latest
+    timeout-minutes: 90
+
+    steps:
+      - name: 📦 Checkout repository
+        uses: actions/checkout@v4
+
+      - name: ⚙️ Prepare test bot configuration
+        id: prepare-config
+        run: |
+          CONFIG=$(cat configs/testbot-config.json)
+
+          OVERRIDE_ID="${{ github.event.inputs.test_bot_id }}"
+          if [ -n "$OVERRIDE_ID" ]; then
+            CONFIG=$(echo "$CONFIG" | jq --arg id "$OVERRIDE_ID" '.testBotId = $id')
+            echo "🔁 testBotId overridden to: $OVERRIDE_ID"
+          fi
+
+          # Use a delimiter to safely handle multi-line JSON in GITHUB_OUTPUT
+          EOF=$(dd if=/dev/urandom bs=15 count=1 status=none | base64)
+          echo "config<<$EOF" >> $GITHUB_OUTPUT
+          echo "$CONFIG" >> $GITHUB_OUTPUT
+          echo "$EOF" >> $GITHUB_OUTPUT
+
+          echo "✅ Configuration ready:"
+          echo "$CONFIG" | jq .
+
+      - name: 🚀 Run Test Bot
+        id: testbot
+        uses: ./
+        with:
+          jwt_token: ${{ secrets.TESTBOT_JWT_TOKEN }}
+          test_bot_configuration: ${{ steps.prepare-config.outputs.config }}
+          poll_interval_seconds: '5'
+          timeout_minutes: '60'
+
+      - name: 📤 Upload test results
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: testbot-results-${{ github.run_number }}
+          path: results/
+          retention-days: 30
+
+      - name: 📊 Show execution summary
+        if: always()
+        run: |
+          echo "Execution ID : ${{ steps.testbot.outputs.execution_id }}"
+          echo "Status       : ${{ steps.testbot.outputs.status }}"
+          echo "Results Path : ${{ steps.testbot.outputs.results_path }}"

@@ -1,0 +1,40 @@
+name: 'Run Test Bot'
+description: 'Run Test Bot with JWT-based authentication for CI/CD pipelines'
+author: 'TestBots'
+
+branding:
+  icon: 'play-circle'
+  color: 'blue'
+
+inputs:
+  jwt_token:
+    description: 'JWT token for authentication'
+    required: true
+
+  test_bot_configuration:
+    description: 'Stringified JSON configuration for the test bot (must include testBotId)'
+    required: true
+
+  poll_interval_seconds:
+    description: 'How often (in seconds) to poll for execution status'
+    required: false
+    default: '5'
+
+  timeout_minutes:
+    description: 'Maximum time (in minutes) to wait for test bot execution to complete'
+    required: false
+    default: '60'
+
+outputs:
+  execution_id:
+    description: 'The execution ID returned by the test bot service'
+
+  status:
+    description: 'Final execution status (PASSED / FAILED / ERROR)'
+
+  results_path:
+    description: 'Path to the saved detailed results JSON file'
+
+runs:
+  using: 'node20'
+  main: 'dist/index.js'

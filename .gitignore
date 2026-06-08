@@ -1,0 +1,26 @@
+# Dependencies - NEVER commit this folder
+node_modules/
+
+# TypeScript intermediate output (not needed, dist/ is what matters)
+lib/
+
+# Logs
+*.log
+npm-debug.log*
+
+# Environment files - NEVER commit secrets
+.env
+.env.local
+
+# ⚠️  DO NOT add dist/ here — dist/index.js MUST be committed
+# so GitHub Actions can run without a separate build step.
+
+
+#mac ignore files
+.DS_Store
+/.DS_Store
+**/.DS_Store
+src/.DS_Store
+*/.DS_Store
+*/**/.DS_Store
+.DS_Store?
