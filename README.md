@@ -1,14 +1,14 @@
 # Run Test Bot
 
-Run AutomationHQ Test Bots directly from your GitHub Actions workflows using JWT authentication.
+Run Test Bots directly from your GitHub Actions workflows using JWT authentication.
 
-This GitHub Action allows teams to execute AutomationHQ Test Bots as part of their CI/CD pipeline, monitor execution status, and automatically collect detailed execution results.
+This GitHub Action allows teams to execute Test Bots as part of their CI/CD pipeline, monitor execution status, and automatically collect detailed execution results.
 
 ---
 
 ## Features
 
-* Execute AutomationHQ Test Bots from GitHub Actions
+* Execute Test Bots from GitHub Actions
 * JWT-based authentication
 * Configurable execution settings
 * Automatic polling until execution completes
@@ -23,7 +23,6 @@ This GitHub Action allows teams to execute AutomationHQ Test Bots as part of the
 
 Before using this action, ensure you have:
 
-* An AutomationHQ account
 * A valid Test Bot ID
 * A JWT authentication token
 * A test bot configuration JSON
@@ -61,7 +60,7 @@ uses: your-org/testbot-action@1.0.0
 
 | Name           | Description                              |
 | -------------- | ---------------------------------------- |
-| `execution_id` | Execution ID returned by AutomationHQ    |
+| `execution_id` | Execution ID returned                    |
 | `status`       | Final execution status                   |
 | `results_path` | Path to generated execution results file |
 
@@ -356,8 +355,8 @@ cat configs/testbot-config.json | jq .
 For support, bug reports, or feature requests:
 
 * Open a GitHub Issue
-* Contact your AutomationHQ administrator
-* Refer to your organization's AutomationHQ documentation
+* Contact your administrator
+* Refer to your organization's documentation
 
 ---
 
