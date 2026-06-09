@@ -1,6 +1,6 @@
-name: 'Run Test Bot'
-description: 'Run Test Bot with JWT-based authentication for CI/CD pipelines'
-author: 'TestBots'
+name: 'Run TestBot'
+description: 'Run TestBot with JWT-based authentication for CI/CD pipelines'
+author: 'TestBots.ai'
 
 branding:
   icon: 'play-circle'
@@ -12,7 +12,7 @@ inputs:
     required: true
 
   test_bot_configuration:
-    description: 'Stringified JSON configuration for the test bot (must include testBotId)'
+    description: 'Stringified JSON configuration for the testbot (must include testBotId)'
     required: true
 
   poll_interval_seconds:
@@ -21,13 +21,13 @@ inputs:
     default: '5'
 
   timeout_minutes:
-    description: 'Maximum time (in minutes) to wait for test bot execution to complete'
+    description: 'Maximum time (in minutes) to wait for testbot execution to complete'
     required: false
     default: '60'
 
 outputs:
   execution_id:
-    description: 'The execution ID returned by the test bot service'
+    description: 'The execution ID returned by the testbot service'
 
   status:
     description: 'Final execution status (PASSED / FAILED / ERROR)'
