@@ -1,3 +1,7 @@
+<p align="center">
+  <img src="./assets/testbots-logo.png" width="250" />
+</p>
+
 # Run Testbot
 
 Run Testbot directly from your GitHub Actions workflows using JWT authentication.
