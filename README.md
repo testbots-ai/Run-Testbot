@@ -1,14 +1,14 @@
-# Run Test Bot
+# Run Testbot
 
-Run Test Bots directly from your GitHub Actions workflows using JWT authentication.
+Run Testbot directly from your GitHub Actions workflows using JWT authentication.
 
-This GitHub Action allows teams to execute Test Bots as part of their CI/CD pipeline, monitor execution status, and automatically collect detailed execution results.
+This GitHub Action allows teams to execute Testbot as part of their CI/CD pipeline, monitor execution status, and automatically collect detailed execution results.
 
 ---
 
 ## Features
 
-* Execute Test Bots from GitHub Actions
+* Execute Testbot from GitHub Actions
 * JWT-based authentication
 * Configurable execution settings
 * Automatic polling until execution completes
@@ -23,9 +23,9 @@ This GitHub Action allows teams to execute Test Bots as part of their CI/CD pipe
 
 Before using this action, ensure you have:
 
-* A valid Test Bot ID
+* A valid Testbot ID
 * A JWT authentication token
-* A test bot configuration JSON
+* A testbot configuration JSON
 
 ---
 
