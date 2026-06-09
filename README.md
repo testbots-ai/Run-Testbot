@@ -1,5 +1,5 @@
 <p align="center">
-  <img src="./assets/testbots-logo.png" width="250" />
+  <img src="./assets/testbots-logo.png" width="100" />
 </p>
 
 # Run Testbot
