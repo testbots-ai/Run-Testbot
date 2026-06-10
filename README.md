@@ -38,13 +38,13 @@ Before using this action, ensure you have:
 Reference this action in your workflow:
 
 ```yaml
-uses: your-org/testbot-action@v1
+uses: testbots-ai/Run-Testbot@v1
 ```
 
 or use a specific version:
 
 ```yaml
-uses: your-org/testbot-action@1.0.0
+uses: testbots-ai/Run-Testbot@v1.0.0
 ```
 
 ---
@@ -87,7 +87,7 @@ jobs:
 
       - name: Run Test Bot
         id: testbot
-        uses: your-org/testbot-action@v1
+        uses: testbots-ai/Run-Testbot@v1.0.0
         with:
           jwt_token: ${{ secrets.TESTBOT_JWT_TOKEN }}
           test_bot_configuration: |
@@ -181,7 +181,7 @@ jobs:
 
       - name: Run Test Bot
         id: testbot
-        uses: your-org/testbot-action@v1
+        uses: testbots-ai/Run-Testbot@v1.0.0
         with:
           jwt_token: ${{ secrets.TESTBOT_JWT_TOKEN }}
           test_bot_configuration: ${{ steps.prepare-config.outputs.config }}
