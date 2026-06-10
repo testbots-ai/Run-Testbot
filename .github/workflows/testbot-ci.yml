@@ -10,7 +10,7 @@ on:
       environment:
         description: 'Target environment'
         required: false
-        default: 'dev'
+        default: 'prod'
         type: choice
         options:
           - dev
