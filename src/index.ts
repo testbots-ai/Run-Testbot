@@ -2,6 +2,7 @@ import * as core from '@actions/core';
 import * as fs from 'fs';
 import * as path from 'path';
 import fetch from 'node-fetch';
+import { generateJUnit } from './junit';
 
 // ─── Types ──────────────────────────────────────────────────────────────────
 
@@ -275,6 +276,7 @@ async function run(): Promise<void> {
     }
 
     const resultsPath = saveResults(results, executionId);
+    generateJUnit(results);
     core.setOutput('results_path', resultsPath);
     printSummary(results);
 

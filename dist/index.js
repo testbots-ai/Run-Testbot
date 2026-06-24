@@ -29646,6 +29646,7 @@ const core = __importStar(__nccwpck_require__(7484));
 const fs = __importStar(__nccwpck_require__(9896));
 const path = __importStar(__nccwpck_require__(6928));
 const node_fetch_1 = __importDefault(__nccwpck_require__(6705));
+const junit_1 = __nccwpck_require__(4831);
 // ─── Helpers ─────────────────────────────────────────────────────────────────
 function decodeJwt(token) {
     const parts = token.split('.');
@@ -29823,6 +29824,7 @@ async function run() {
             results = { executionId, status: finalStatus.status };
         }
         const resultsPath = saveResults(results, executionId);
+        (0, junit_1.generateJUnit)(results);
         core.setOutput('results_path', resultsPath);
         printSummary(results);
         const statusUpper = finalStatus.status.toUpperCase();
@@ -29839,6 +29841,141 @@ async function run() {
     }
 }
 run();
+
+
+/***/ }),
+
+/***/ 4831:
+/***/ (function(__unused_webpack_module, exports, __nccwpck_require__) {
+
+"use strict";
+
+var __createBinding = (this && this.__createBinding) || (Object.create ? (function(o, m, k, k2) {
+    if (k2 === undefined) k2 = k;
+    var desc = Object.getOwnPropertyDescriptor(m, k);
+    if (!desc || ("get" in desc ? !m.__esModule : desc.writable || desc.configurable)) {
+      desc = { enumerable: true, get: function() { return m[k]; } };
+    }
+    Object.defineProperty(o, k2, desc);
+}) : (function(o, m, k, k2) {
+    if (k2 === undefined) k2 = k;
+    o[k2] = m[k];
+}));
+var __setModuleDefault = (this && this.__setModuleDefault) || (Object.create ? (function(o, v) {
+    Object.defineProperty(o, "default", { enumerable: true, value: v });
+}) : function(o, v) {
+    o["default"] = v;
+});
+var __importStar = (this && this.__importStar) || (function () {
+    var ownKeys = function(o) {
+        ownKeys = Object.getOwnPropertyNames || function (o) {
+            var ar = [];
+            for (var k in o) if (Object.prototype.hasOwnProperty.call(o, k)) ar[ar.length] = k;
+            return ar;
+        };
+        return ownKeys(o);
+    };
+    return function (mod) {
+        if (mod && mod.__esModule) return mod;
+        var result = {};
+        if (mod != null) for (var k = ownKeys(mod), i = 0; i < k.length; i++) if (k[i] !== "default") __createBinding(result, mod, k[i]);
+        __setModuleDefault(result, mod);
+        return result;
+    };
+})();
+Object.defineProperty(exports, "__esModule", ({ value: true }));
+exports.generateJUnit = generateJUnit;
+const fs = __importStar(__nccwpck_require__(9896));
+const path = __importStar(__nccwpck_require__(6928));
+// ── Helpers ──────────────────────────────────────────────────────────────────
+/** Escape special XML characters */
+function escapeXml(str) {
+    return str
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;')
+        .replace(/'/g, '&apos;');
+}
+/** Build a single <testcase> element */
+function buildTestCase(script) {
+    var _a, _b, _c, _d, _e;
+    const name = escapeXml((_b = (_a = script.testScriptName) !== null && _a !== void 0 ? _a : script.name) !== null && _b !== void 0 ? _b : 'Unnamed Test');
+    const time = ((_c = script.duration) !== null && _c !== void 0 ? _c : 0).toFixed(3);
+    const status = ((_d = script.resultStatus) !== null && _d !== void 0 ? _d : '').toUpperCase();
+    let inner = '';
+    if (status === 'FAILED' || status === 'ERROR') {
+        const msg = escapeXml((_e = script.errorMessage) !== null && _e !== void 0 ? _e : `Test ${status.toLowerCase()}`);
+        inner = `\n      <failure message="${msg}" type="${status}">${msg}</failure>`;
+    }
+    else if (status === 'SKIPPED') {
+        inner = `\n      <skipped/>`;
+    }
+    return `    <testcase name="${name}" time="${time}">${inner}\n    </testcase>`;
+}
+/** Build a <testsuite> element from a suite + its scripts */
+function buildTestSuite(suite, index) {
+    var _a, _b, _c, _d;
+    const suiteName = escapeXml((_b = (_a = suite.testSuiteName) !== null && _a !== void 0 ? _a : suite.name) !== null && _b !== void 0 ? _b : `Suite ${index + 1}`);
+    const scripts = (_c = suite.testScriptResults) !== null && _c !== void 0 ? _c : [];
+    const tests = scripts.length;
+    const failures = scripts.filter(s => { var _a; return ['FAILED', 'ERROR'].includes(((_a = s.resultStatus) !== null && _a !== void 0 ? _a : '').toUpperCase()); }).length;
+    const skipped = scripts.filter(s => { var _a; return ((_a = s.resultStatus) !== null && _a !== void 0 ? _a : '').toUpperCase() === 'SKIPPED'; }).length;
+    const time = ((_d = suite.duration) !== null && _d !== void 0 ? _d : scripts.reduce((sum, s) => { var _a; return sum + ((_a = s.duration) !== null && _a !== void 0 ? _a : 0); }, 0)).toFixed(3);
+    const testCases = scripts.map(buildTestCase).join('\n');
+    return [
+        `  <testsuite name="${suiteName}" tests="${tests}" failures="${failures}" skipped="${skipped}" errors="0" time="${time}">`,
+        testCases,
+        `  </testsuite>`,
+    ].join('\n');
+}
+// ── Main export ──────────────────────────────────────────────────────────────
+/**
+ * Converts TestBot JSON results into a JUnit XML file at results/junit.xml.
+ * Safe to call even if results is undefined/empty — will produce a valid empty report.
+ */
+function generateJUnit(results) {
+    var _a;
+    try {
+        // Resolve suites — handle both top-level and nested script results
+        let suites = (_a = results === null || results === void 0 ? void 0 : results.testSuiteResults) !== null && _a !== void 0 ? _a : [];
+        // Fallback: if there are no suites but there are top-level scripts, wrap them
+        if (suites.length === 0 && (results === null || results === void 0 ? void 0 : results.testScriptResults) && results.testScriptResults.length > 0) {
+            suites = [
+                {
+                    testSuiteName: 'TestBot Results',
+                    testScriptResults: results.testScriptResults,
+                },
+            ];
+        }
+        // Aggregate totals
+        const allScripts = suites.flatMap(s => { var _a; return (_a = s.testScriptResults) !== null && _a !== void 0 ? _a : []; });
+        const totalTests = allScripts.length;
+        const totalFailures = allScripts.filter(s => { var _a; return ['FAILED', 'ERROR'].includes(((_a = s.resultStatus) !== null && _a !== void 0 ? _a : '').toUpperCase()); }).length;
+        const totalSkipped = allScripts.filter(s => { var _a; return ((_a = s.resultStatus) !== null && _a !== void 0 ? _a : '').toUpperCase() === 'SKIPPED'; }).length;
+        const totalTime = allScripts.reduce((sum, s) => { var _a; return sum + ((_a = s.duration) !== null && _a !== void 0 ? _a : 0); }, 0).toFixed(3);
+        const suiteXml = suites.map((suite, i) => buildTestSuite(suite, i)).join('\n');
+        const xml = [
+            `<?xml version="1.0" encoding="UTF-8"?>`,
+            `<testsuites name="TestBot" tests="${totalTests}" failures="${totalFailures}" skipped="${totalSkipped}" errors="0" time="${totalTime}">`,
+            suiteXml,
+            `</testsuites>`,
+        ].join('\n');
+        // Ensure output directory exists
+        const outputDir = path.resolve('results');
+        if (!fs.existsSync(outputDir)) {
+            fs.mkdirSync(outputDir, { recursive: true });
+        }
+        const outputPath = path.join(outputDir, 'junit.xml');
+        fs.writeFileSync(outputPath, xml, 'utf8');
+        console.log(`✅ JUnit XML written to: ${outputPath}`);
+        console.log(`   Suites: ${suites.length} | Tests: ${totalTests} | Failures: ${totalFailures} | Skipped: ${totalSkipped}`);
+    }
+    catch (err) {
+        // Never crash the main action — log and continue
+        console.error('⚠️  generateJUnit failed (non-fatal):', err);
+    }
+}
 
 
 /***/ }),

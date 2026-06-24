@@ -21,6 +21,12 @@ concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
   cancel-in-progress: true
 
+# ── Required for EnricoMi/publish-unit-test-result-action ────────────────────
+permissions:
+  checks: write
+  pull-requests: write
+  contents: read
+
 jobs:
   run-testbot:
     name: 🤖 Run Test Bot
@@ -60,6 +66,16 @@ jobs:
           poll_interval_seconds: '5'
           timeout_minutes: '60'
 
+      # ── NEW: Publish JUnit results to GitHub Checks ───────────────────────
+      - name: 📋 Publish Test Results
+        uses: EnricoMi/publish-unit-test-result-action@v2
+        if: ${{ !cancelled() }}
+        with:
+          files: results/**/*.xml
+          check_name: 'TestBot Results'
+          comment_title: 'TestBot Test Results'
+          fail_on: 'test failures'
+
       - name: 📤 Upload test results
         if: always()
         uses: actions/upload-artifact@v4
@@ -74,3 +90,4 @@ jobs:
           echo "Execution ID : ${{ steps.testbot.outputs.execution_id }}"
           echo "Status       : ${{ steps.testbot.outputs.status }}"
           echo "Results Path : ${{ steps.testbot.outputs.results_path }}"
+          
