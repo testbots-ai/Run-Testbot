@@ -2,6 +2,20 @@ name: Run Test Bot CI/CD2
 
 on:
   workflow_dispatch:
+    inputs:
+      test_bot_id:
+        description: 'Override testBotId (leave empty to use configs/testbot-config.json)'
+        required: false
+        default: ''
+      environment:
+        description: 'Target environment'
+        required: false
+        default: 'prod'
+        type: choice
+        options:
+          - dev
+          - staging
+          - prod
 
 permissions:
   contents: read
@@ -31,8 +45,20 @@ jobs:
 
       - name: Load Config
         id: config
+        env:
+          TEST_BOT_ID_OVERRIDE: ${{ github.event.inputs.test_bot_id }}
+          TARGET_ENVIRONMENT: ${{ github.event.inputs.environment }}
         run: |
-          echo "config=$(cat configs/testbot-config.json | jq -c .)" >> $GITHUB_OUTPUT
+          CONFIG=$(cat configs/testbot-config.json)
+
+          if [ -n "$TEST_BOT_ID_OVERRIDE" ]; then
+            echo "🔁 testBotId overridden to: $TEST_BOT_ID_OVERRIDE"
+            CONFIG=$(echo "$CONFIG" | jq --arg id "$TEST_BOT_ID_OVERRIDE" '.testBotId = $id')
+          fi
+
+          echo "🌍 Target environment: ${TARGET_ENVIRONMENT:-prod}"
+
+          echo "config=$(echo "$CONFIG" | jq -c .)" >> $GITHUB_OUTPUT
 
       - name: Trigger and Poll TestBot Execution
         id: testbot
@@ -249,4 +275,4 @@ jobs:
             results/*.xml
             results/*.json
             results/*.md
-          if-no-files-found: warn 
+          if-no-files-found: warn
