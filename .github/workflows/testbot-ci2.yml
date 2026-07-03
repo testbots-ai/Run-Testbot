@@ -1,0 +1,252 @@
+name: Run Test Bot CI/CD2
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  checks: write
+  pull-requests: write
+
+env:
+  # AutomationHQ's own executor endpoints (ahq-test-bot-executor-services, /rest/api/testops/*).
+  # We poll these directly instead of using testbots-ai/Run-Testbot: that action's polling loop
+  # only breaks out on status == "COMPLETED", but the backend now sets the terminal BotExecution
+  # status to "SUCCEEDED" once a run finishes (see TestRemoteExecutionRepository.java in
+  # ahq-background-v2-services), so the action polls the same finished execution forever and
+  # never reaches the results-fetch step. This is a vendor-action bug, not a workflow config
+  # issue — reported to testbots-ai separately. This step is a drop-in replacement that treats
+  # SUCCEEDED the same as COMPLETED/FAILED/CANCELLED as a terminal state.
+  TESTOPS_BASE_URL: https://api-dev.automationhq.ai/ahq-test-bot-executor-services
+  POLL_INTERVAL_SECONDS: 5
+  POLL_TIMEOUT_MINUTES: 20
+
+jobs:
+  run-testbot:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30   # job-level backstop so a hang never eats hours
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Load Config
+        id: config
+        run: |
+          echo "config=$(cat configs/testbot-config.json | jq -c .)" >> $GITHUB_OUTPUT
+
+      - name: Trigger and Poll TestBot Execution
+        id: testbot
+        timeout-minutes: 20   # matches POLL_TIMEOUT_MINUTES as a hard backstop
+        env:
+          JWT_TOKEN: ${{ secrets.TESTBOT_JWT_TOKEN }}
+          CONFIG_JSON: ${{ steps.config.outputs.config }}
+        run: |
+          set -euo pipefail
+          mkdir -p results
+
+          TEST_BOT_ID=$(echo "$CONFIG_JSON" | jq -r '.testBotId')
+          TEST_BOT_NAME=$(echo "$CONFIG_JSON" | jq -r '.name')
+          echo "   Test Bot ID  : $TEST_BOT_ID"
+          echo "   Test Bot Name: $TEST_BOT_NAME"
+
+          echo "🚀 Triggering test bot execution..."
+          echo "   Endpoint : ${TESTOPS_BASE_URL}/rest/api/testops/${TEST_BOT_ID}/execute"
+
+          TRIGGER_RESPONSE=$(curl -sS --fail-with-body -X POST \
+            "${TESTOPS_BASE_URL}/rest/api/testops/${TEST_BOT_ID}/execute" \
+            -H "Authorization: Bearer ${JWT_TOKEN}" \
+            -H "Content-Type: application/json" \
+            -d "$CONFIG_JSON")
+
+          EXECUTION_ID=$(echo "$TRIGGER_RESPONSE" | jq -r '.id // empty')
+          if [ -z "$EXECUTION_ID" ]; then
+            echo "::error::Failed to trigger execution: $(echo "$TRIGGER_RESPONSE" | jq -r '.message // .')"
+            exit 1
+          fi
+
+          echo "✅ Execution triggered. ID: $EXECUTION_ID"
+          echo "execution_id=$EXECUTION_ID" >> $GITHUB_OUTPUT
+
+          echo "⏳ Polling every ${POLL_INTERVAL_SECONDS}s (timeout: ${POLL_TIMEOUT_MINUTES}m)..."
+          START_TIME=$SECONDS
+          POLL_COUNT=0
+          FINAL_STATUS="UNKNOWN"
+
+          while true; do
+            POLL_COUNT=$((POLL_COUNT + 1))
+            ELAPSED=$((SECONDS - START_TIME))
+
+            if [ $ELAPSED -gt $((POLL_TIMEOUT_MINUTES * 60)) ]; then
+              echo "::error::Polling timed out after ${POLL_TIMEOUT_MINUTES} minutes. Last known status: $FINAL_STATUS"
+              exit 1
+            fi
+
+            STATUS_RESPONSE=$(curl -sS --fail-with-body \
+              "${TESTOPS_BASE_URL}/rest/api/testops/execution/${EXECUTION_ID}/status?pollCount=${POLL_COUNT}")
+            FINAL_STATUS=$(echo "$STATUS_RESPONSE" | jq -r '.status // "UNKNOWN"')
+            echo "   Status: $FINAL_STATUS (elapsed: ${ELAPSED}s)"
+
+            # ENQUEUED / PROCESSING / OPTIMIZATION_IN_PROGRESS are the only "still running"
+            # states the backend emits. Everything else (SUCCEEDED, COMPLETED, FAILED,
+            # CANCELLED, UNKNOWN-fallback) is terminal — this is the fix for the vendor
+            # action only recognizing COMPLETED.
+            case "$FINAL_STATUS" in
+              ENQUEUED|PROCESSING|OPTIMIZATION_IN_PROGRESS)
+                sleep "$POLL_INTERVAL_SECONDS"
+                ;;
+              *)
+                break
+                ;;
+            esac
+          done
+
+          echo "🎉 Execution finished with status: $FINAL_STATUS"
+          echo "status=$FINAL_STATUS" >> $GITHUB_OUTPUT
+
+          echo "📋 Fetching detailed results..."
+          curl -sS --fail-with-body \
+            "${TESTOPS_BASE_URL}/rest/api/testops/execution/${EXECUTION_ID}/detailed-results" \
+            -o results/execution-result.json
+
+          echo "results_path=results/execution-result.json" >> $GITHUB_OUTPUT
+
+          FAILED_SCRIPTS=$(jq -r '.summary.failedScripts // 0' results/execution-result.json)
+          if [ "$FINAL_STATUS" = "FAILED" ] || [ "$FAILED_SCRIPTS" -gt 0 ]; then
+            echo "::warning::TestBot run finished with failures ($FAILED_SCRIPTS failed script(s))."
+          fi
+
+      - name: Show Results Summary
+        if: always()
+        run: |
+          echo "Execution ID: ${{ steps.testbot.outputs.execution_id }}"
+          echo "Status: ${{ steps.testbot.outputs.status }}"
+          echo "Results: ${{ steps.testbot.outputs.results_path }}"
+
+      - name: Display Raw Result JSON
+        if: always() && steps.testbot.outputs.results_path != ''
+        run: |
+          cat "${{ steps.testbot.outputs.results_path }}" | jq .
+
+      - name: Generate JUnit XML + Markdown Report
+        if: always() && steps.testbot.outputs.results_path != ''
+        run: |
+          python3 <<'PY'
+          import json
+          import xml.etree.ElementTree as ET
+          from pathlib import Path
+
+          json_file = Path("${{ steps.testbot.outputs.results_path }}")
+
+          with open(json_file, "r", encoding="utf-8") as f:
+              data = json.load(f)
+
+          Path("results").mkdir(exist_ok=True)
+
+          summary = data["summary"]
+
+          suite = ET.Element(
+              "testsuite",
+              name=data.get("testBotName", "TestBot"),
+              tests=str(summary.get("totalScripts", 0)),
+              failures=str(summary.get("failedScripts", 0)),
+              errors="0"
+          )
+
+          for ts in data.get("testSuiteResults", []):
+              suite_name = ts.get("testSuiteName", "Suite")
+              for script in ts.get("testScriptResults", []):
+                  tc = ET.SubElement(
+                      suite, "testcase",
+                      classname=suite_name,
+                      name=script.get("testScriptName", "Test")
+                  )
+                  if script.get("resultStatus") != "PASSED":
+                      fail = ET.SubElement(tc, "failure")
+                      fail.text = script.get("resultStatus")
+
+          ET.ElementTree(suite).write(
+              "results/junit-results.xml",
+              encoding="utf-8",
+              xml_declaration=True
+          )
+
+          md = []
+          md.append("# TestBot Execution Report")
+          md.append("")
+          md.append(f"**Execution ID:** {data.get('executionId')}")
+          md.append("")
+          md.append(f"**Bot:** {data.get('testBotName')}")
+          md.append("")
+          md.append(f"**Status:** {data.get('status')}")
+          md.append("")
+          md.append(f"**Duration:** {summary.get('formattedDuration')}")
+          md.append("")
+          md.append("## Summary")
+          md.append("")
+          md.append("| Metric | Value |")
+          md.append("|----------|----------|")
+          md.append(f"| Total Suites | {summary.get('totalSuites')} |")
+          md.append(f"| Passed Suites | {summary.get('passedSuites')} |")
+          md.append(f"| Failed Suites | {summary.get('failedSuites')} |")
+          md.append(f"| Total Scripts | {summary.get('totalScripts')} |")
+          md.append(f"| Passed Scripts | {summary.get('passedScripts')} |")
+          md.append(f"| Failed Scripts | {summary.get('failedScripts')} |")
+
+          for suite in data.get("testSuiteResults", []):
+              md.append("")
+              md.append(f"## Suite: {suite['testSuiteName']}")
+              md.append("")
+              for script in suite.get("testScriptResults", []):
+                  icon = "✅" if script["resultStatus"] == "PASSED" else "❌"
+                  md.append(f"### {icon} {script['testScriptName']}")
+                  for iteration in script.get("iterations", []):
+                      md.append("")
+                      md.append("| Step | Status | Description |")
+                      md.append("|------|--------|-------------|")
+                      for step in iteration.get("stepResults", []):
+                          status = step["resultStatus"]
+                          emoji = "✅" if status == "PASSED" else "❌"
+                          md.append(f"| {step['sequence']} | {emoji} {status} | {step['testStepName']} |")
+
+          Path("results/report.md").write_text("\n".join(md), encoding="utf-8")
+          print("Generated:")
+          print(" - results/junit-results.xml")
+          print(" - results/report.md")
+          PY
+
+      - name: Publish GitHub Job Summary
+        if: always()
+        run: |
+          if [ -f results/report.md ]; then
+            cat results/report.md >> $GITHUB_STEP_SUMMARY
+          else
+            echo "## TestBot Run Did Not Complete" >> $GITHUB_STEP_SUMMARY
+            echo "" >> $GITHUB_STEP_SUMMARY
+            echo "No report was generated. Check the 'Trigger and Poll TestBot Execution' step logs." >> $GITHUB_STEP_SUMMARY
+          fi
+
+      - name: Verify Generated Files
+        if: always()
+        run: |
+          echo "===== GENERATED FILES ====="
+          find results -type f 2>/dev/null || echo "No results directory was created."
+
+      - name: Publish Test Results
+        if: ${{ !cancelled() }}
+        uses: EnricoMi/publish-unit-test-result-action@v2
+        with:
+          check_name: TestBot Results
+          comment_title: TestBot Results
+          files: results/junit-results.xml
+          fail_on: test failures
+
+      - name: Upload Reports
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: testbot-results-${{ github.run_number }}
+          path: |
+            results/*.xml
+            results/*.json
+            results/*.md
+          if-no-files-found: warn 
