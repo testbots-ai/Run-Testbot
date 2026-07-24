@@ -1,51 +1,73 @@
 {
-  "name": "AHQ Local Grid - TestingBot - DEV - Web - WIN11 - Chrome",
-  "testBotId": "fa32148c-75b7-4066-a84a-4d07d2ea41bc",
-  "executionConfiguration": {
-    "baseUrl": "25d41d51-2143-493c-817e-5915117eb4da",
-    "browser": "Chrome",
-    "browserVersion": "150",
-    "closeBrowserAfterEachExecution": true,
-    "customProperties": [
-      {
-        "customPropertyId": "9df5d346-d987-4bb6-8abe-cd1c4ed61def",
-        "name": "Email",
-        "type": "7",
-        "value": "Email"
-      },
-      {
-        "customPropertyId": "dff66b74-fe99-45e3-af67-10942bef3942",
-        "name": "Password",
-        "type": "7",
-        "value": "Password"
-      }
-    ],
-    "type": "Web",
-    "gridId": "cbed7ab1-198b-46b5-9a7e-8c4add4d3114",
-    "excludeToBeRepairedTest": false,
-    "gridUrl": "",
-    "gridUrlForExecution": "",
-    "osType": "WIN11",
-    "resolution": "1920x1200",
-    "screenshotAfterEachStep": true,
-    "screenshotOnError": false,
-    "screenshotOnFinish": false,
-    "timeout": 30,
-    "waitForElementTimeout": 10,
-    "delayBetweenSteps": 3,
-    "numberOfRetries": 0,
-    "browserConfigs": [
-      {
-        "osType": "WIN11",
-        "browser": "Chrome",
-        "browserVersion": "150",
-        "resolution": "1920x1200",
-        "gridId": "cbed7ab1-198b-46b5-9a7e-8c4add4d3114",
-        "gridUrl": null,
-        "profileId": "bb014683-aca6-483e-b33b-2126311c10e4",
-        "profileName": "KIARA"
-      }
-    ]
-  },
-  "profileId": "bb014683-aca6-483e-b33b-2126311c10e4"
+   "name":"AHQ Premium Grid - DEV - Web - WIN11 - Chrome",
+   "testBotId":"f1da9b63-4103-42ed-9d7d-e3371d67f7b5",
+   "executionConfiguration":{
+      "baseUrl":"85386111-f8f8-4889-9d55-d557d95dbc95",
+      "browser":"Chrome",
+      "browserVersion":"latest",
+      "closeBrowserAfterEachExecution":true,
+      "customProperties":[
+         {
+            "customPropertyId":"c63d08b7-9ff0-4284-aba0-5515b207d951",
+            "name":"username",
+            "value":"support@automationhq.ai",
+            "type":"0"
+         },
+         {
+            "customPropertyId":"6956554f-2574-439a-986b-c1ab7d992e15",
+            "name":"password",
+            "value":"DevP@ssword12345",
+            "type":"0"
+         },
+         {
+            "customPropertyId":"79a1aff6-2acf-46ff-92cf-d8bd2c41c053",
+            "name":"email",
+            "value":"Test",
+            "type":"0"
+         },
+         {
+            "customPropertyId":"0a5c6270-05c7-4a35-9a60-6063137f3172",
+            "name":"firstname",
+            "value":"AHQ",
+            "type":"0"
+         },
+         {
+            "customPropertyId":"0f245bb9-db7f-43e4-9aad-6d145255b088",
+            "name":"lastname",
+            "value":"Support",
+            "type":"0"
+         },
+         {
+            "customPropertyId":"4969acc0-8421-4365-8bfc-0ced06c94aa2",
+            "name":"passkey",
+            "type":"7",
+            "value":"support@automationhq.ai"
+         }
+      ],
+      "type":"Web",
+      "gridId":"373bbbcf-c96e-447f-a97e-8f1c38178791",
+      "excludeToBeRepairedTest":false,
+      "gridUrl":"",
+      "gridUrlForExecution":"",
+      "osType":"WIN11",
+      "resolution":"1920x1200",
+      "screenshotAfterEachStep":false,
+      "screenshotOnError":true,
+      "screenshotOnFinish":true,
+      "timeout":30,
+      "waitForElementTimeout":10,
+      "delayBetweenSteps":0,
+      "browserConfigs":[
+         {
+            "osType":"WIN11",
+            "browser":"Chrome",
+            "browserVersion":"latest",
+            "resolution":"1920x1200",
+            "gridId":"373bbbcf-c96e-447f-a97e-8f1c38178791",
+            "gridUrl":null,
+            "profileId":null,
+            "profileName":null
+         }
+      ]
+   }
 }
