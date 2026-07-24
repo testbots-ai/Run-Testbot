@@ -1,73 +1,51 @@
 {
-   "name":"AHQ Premium Grid - DEV - Web - WIN11 - Chrome",
-   "testBotId":"f1da9b63-4103-42ed-9d7d-e3371d67f7b5",
-   "executionConfiguration":{
-      "baseUrl":"85386111-f8f8-4889-9d55-d557d95dbc95",
-      "browser":"Chrome",
-      "browserVersion":"latest",
-      "closeBrowserAfterEachExecution":true,
-      "customProperties":[
-         {
-            "customPropertyId":"c63d08b7-9ff0-4284-aba0-5515b207d951",
-            "name":"username",
-            "value":"support@automationhq.ai",
-            "type":"0"
-         },
-         {
-            "customPropertyId":"6956554f-2574-439a-986b-c1ab7d992e15",
-            "name":"password",
-            "value":"DevP@ssword12345",
-            "type":"0"
-         },
-         {
-            "customPropertyId":"79a1aff6-2acf-46ff-92cf-d8bd2c41c053",
-            "name":"email",
-            "value":"Test",
-            "type":"0"
-         },
-         {
-            "customPropertyId":"0a5c6270-05c7-4a35-9a60-6063137f3172",
-            "name":"firstname",
-            "value":"AHQ",
-            "type":"0"
-         },
-         {
-            "customPropertyId":"0f245bb9-db7f-43e4-9aad-6d145255b088",
-            "name":"lastname",
-            "value":"Support",
-            "type":"0"
-         },
-         {
-            "customPropertyId":"4969acc0-8421-4365-8bfc-0ced06c94aa2",
-            "name":"passkey",
-            "type":"7",
-            "value":"support@automationhq.ai"
-         }
-      ],
-      "type":"Web",
-      "gridId":"373bbbcf-c96e-447f-a97e-8f1c38178791",
-      "excludeToBeRepairedTest":false,
-      "gridUrl":"",
-      "gridUrlForExecution":"",
-      "osType":"WIN11",
-      "resolution":"1920x1200",
-      "screenshotAfterEachStep":false,
-      "screenshotOnError":true,
-      "screenshotOnFinish":true,
-      "timeout":30,
-      "waitForElementTimeout":10,
-      "delayBetweenSteps":0,
-      "browserConfigs":[
-         {
-            "osType":"WIN11",
-            "browser":"Chrome",
-            "browserVersion":"latest",
-            "resolution":"1920x1200",
-            "gridId":"373bbbcf-c96e-447f-a97e-8f1c38178791",
-            "gridUrl":null,
-            "profileId":null,
-            "profileName":null
-         }
-      ]
-   }
+  "name": "Premium Grid - AHQ Web App Environment - Web - WIN11 - Chrome",
+  "testBotId": "0c11a100-1953-4fa3-835d-e9a858e6d6dc",
+  "executionConfiguration": {
+    "baseUrl": "f6bbd580-a986-4715-8e72-d56abaa39019",
+    "browser": "Chrome",
+    "browserVersion": "150",
+    "closeBrowserAfterEachExecution": false,
+    "customProperties": [
+      {
+        "customPropertyId": "436d416f-4cfb-47cf-b9f0-67c41dca6a4d",
+        "name": "Email",
+        "value": "Kiaraforcadilla0+ahq2.0siteadmin@gmail.com",
+        "type": "0"
+      },
+      {
+        "customPropertyId": "f17a1ce3-c744-4940-85f6-4204e74c2f92",
+        "name": "Password",
+        "value": "09187341007",
+        "type": "0"
+      }
+    ],
+    "type": "Web",
+    "gridId": "4dbcc880-c515-46ca-b1ca-b3592a15a793",
+    "excludeToBeRepairedTest": false,
+    "gridUrl": "",
+    "gridUrlForExecution": "",
+    "osType": "WIN11",
+    "resolution": "1920x1200",
+    "screenshotAfterEachStep": false,
+    "screenshotOnError": false,
+    "screenshotOnFinish": false,
+    "timeout": 30,
+    "waitForElementTimeout": 10,
+    "delayBetweenSteps": 0,
+    "numberOfRetries": 0,
+    "browserConfigs": [
+      {
+        "osType": "WIN11",
+        "browser": "Chrome",
+        "browserVersion": "150",
+        "resolution": "1920x1200",
+        "gridId": "4dbcc880-c515-46ca-b1ca-b3592a15a793",
+        "gridUrl": null,
+        "profileId": "9e96fea8-0555-4d4f-ab91-a2b011590bc9",
+        "profileName": "testing"
+      }
+    ]
+  },
+  "profileId": "9e96fea8-0555-4d4f-ab91-a2b011590bc9"
 }
