@@ -21,7 +21,10 @@ env:
   # never reaches the results-fetch step. This is a vendor-action bug, not a workflow config
   # issue — reported to testbots-ai separately. This step is a drop-in replacement that treats
   # SUCCEEDED the same as COMPLETED/FAILED/CANCELLED as a terminal state.
-  TESTOPS_BASE_URL: https://api-dev.automationhq.ai/ahq-test-bot-executor-services
+
+  # ENVIRONMENT API
+  # TESTOPS_BASE_URL: https://api-dev.automationhq.ai/ahq-test-bot-executor-services
+  TESTOPS_BASE_URL: https://app.automationhq.ai/ahq-test-bot-executor-services
   POLL_INTERVAL_SECONDS: 5
   POLL_TIMEOUT_MINUTES: 20
 
