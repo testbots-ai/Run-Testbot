@@ -24,7 +24,7 @@ env:
 
   # ENVIRONMENT API
   # TESTOPS_BASE_URL: https://api-dev.automationhq.ai/ahq-test-bot-executor-services
-  TESTOPS_BASE_URL: https://app.automationhq.ai/ahq-test-bot-executor-services
+  TESTOPS_BASE_URL: https://api.automationhq.ai/ahq-test-bot-executor-services
   POLL_INTERVAL_SECONDS: 5
   POLL_TIMEOUT_MINUTES: 20
 
