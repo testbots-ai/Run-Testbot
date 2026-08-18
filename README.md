@@ -28,7 +28,7 @@ This action is published on the **GitHub Marketplace**:
 
 **https://github.com/marketplace/actions/run-testbot**
 
-You can either grab the workflow from the Marketplace listing and drop it straight into your own repository, or copy it directly out of this repository at `.github/workflows/testbot-ci.yml`. Both give you the exact same workflow. For the full copy-pasteable version plus step-by-step setup, see [docs/USAGE_GUIDE.md](docs/USAGE_GUIDE.md).
+You can either grab the workflow from the Marketplace listing and drop it straight into your own repository, or copy it directly out of this repository at `.github/workflows/testbot-ci.yml`. Both give you the exact same workflow. For the full copy-pasteable version plus step-by-step setup, see [USAGE_GUIDE.md](USAGE_GUIDE.md).
 
 ---
 
@@ -173,7 +173,7 @@ The current, fully-featured workflow — config validation, resilient polling wi
 .github/workflows/testbot-ci.yml
 ```
 
-Copy that file directly into your own repository's `.github/workflows/` directory. For the complete, copy-pasteable version along with step-by-step setup (including how to get it from the [GitHub Marketplace listing](https://github.com/marketplace/actions/run-testbot)), see [docs/USAGE_GUIDE.md](docs/USAGE_GUIDE.md).
+Copy that file directly into your own repository's `.github/workflows/` directory. For the complete, copy-pasteable version along with step-by-step setup (including how to get it from the [GitHub Marketplace listing](https://github.com/marketplace/actions/run-testbot)), see [USAGE_GUIDE.md](USAGE_GUIDE.md).
 
 ---
 
@@ -353,7 +353,7 @@ This provides a complete test execution experience directly within GitHub, makin
 
 # Action Inputs
 
-> These inputs apply only when consuming the packaged action directly (`uses: testbots-ai/Run-Testbot@<version>`) as defined in `action.yml`. The workflow documented in [docs/USAGE_GUIDE.md](docs/USAGE_GUIDE.md) and `.github/workflows/testbot-ci.yml` instead reads `configs/testbot-config.json` and the `TESTBOT_JWT_TOKEN` secret directly, and controls polling/timeouts via the `POLL_INTERVAL_SECONDS` / `POLL_TIMEOUT_MINUTES` env vars and job/step `timeout-minutes`.
+> These inputs apply only when consuming the packaged action directly (`uses: testbots-ai/Run-Testbot@<version>`) as defined in `action.yml`. The workflow documented in [USAGE_GUIDE.md](USAGE_GUIDE.md) and `.github/workflows/testbot-ci.yml` instead reads `configs/testbot-config.json` and the `TESTBOT_JWT_TOKEN` secret directly, and controls polling/timeouts via the `POLL_INTERVAL_SECONDS` / `POLL_TIMEOUT_MINUTES` env vars and job/step `timeout-minutes`.
 
 | Input                    | Required | Default | Description                                 |
 | ------------------------ | -------- | ------- | ------------------------------------------- |
@@ -362,7 +362,7 @@ This provides a complete test execution experience directly within GitHub, makin
 | `poll_interval_seconds`  | No       | 5       | Polling interval while execution is running |
 | `timeout_minutes`        | No       | 60      | Maximum wait time for execution completion  |
 
-> The `timeout_minutes` default of `60` is only enough for short runs. TestBot executions can legitimately take up to ~5h45m (see the `.github/workflows/testbot-ci.yml` guidance in [docs/USAGE_GUIDE.md](docs/USAGE_GUIDE.md), which defaults `POLL_TIMEOUT_MINUTES` to `345`). If your runs are long, override `timeout_minutes` accordingly **and** raise your own workflow's job-level `timeout-minutes`, keeping both under GitHub's hard 360-minute (6h) per-job cap for `ubuntu-latest` runners.
+> The `timeout_minutes` default of `60` is only enough for short runs. TestBot executions can legitimately take up to ~5h45m (see the `.github/workflows/testbot-ci.yml` guidance in [USAGE_GUIDE.md](USAGE_GUIDE.md), which defaults `POLL_TIMEOUT_MINUTES` to `345`). If your runs are long, override `timeout_minutes` accordingly **and** raise your own workflow's job-level `timeout-minutes`, keeping both under GitHub's hard 360-minute (6h) per-job cap for `ubuntu-latest` runners.
 
 ---
 
@@ -547,7 +547,7 @@ with:
   timeout_minutes: '120'
 ```
 
-If using the `.github/workflows/testbot-ci.yml` workflow (see [docs/USAGE_GUIDE.md](docs/USAGE_GUIDE.md)), the current defaults are already set right at GitHub's cap:
+If using the `.github/workflows/testbot-ci.yml` workflow (see [USAGE_GUIDE.md](USAGE_GUIDE.md)), the current defaults are already set right at GitHub's cap:
 
 | Setting | Default | Where |
 | --- | --- | --- |

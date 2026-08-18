@@ -16,6 +16,22 @@ This guide summarizes how to run TestBots from GitHub Actions using this reposit
 
 ---
 
+## Repository Structure
+
+```text
+.
+├── .github/
+│   └── workflows/
+│       └── testbot-ci.yml
+│
+├── configs/
+│   └── testbot-config.json
+│
+└── README.md
+```
+
+---
+
 ## Two Ways to Get the Same Workflow
 
 Both paths below get you the identical workflow — full config validation, resilient polling with clear failure reasons, JUnit + Markdown reporting, and GitHub Job Summary/Checks integration. Pick whichever is more convenient:
@@ -448,7 +464,7 @@ jobs:
 
 ### Step 3: Add Your TestBot Configuration
 
-This workflow reads its configuration from `configs/testbot-config.json` in your repository (not from workflow inputs). Add that file — see [Step 1 in the README](../README.md#step-1-configure-testbot) for the required fields (`testBotId`, `name`, `executionConfiguration`, etc.).
+This workflow reads its configuration from `configs/testbot-config.json` in your repository (not from workflow inputs). Add that file — see [Step 1 in the README](README.md#step-1-configure-testbot) for the required fields (`testBotId`, `name`, `executionConfiguration`, etc.).
 
 ### Step 4: Know Your Env Vars and Outputs
 
@@ -484,7 +500,7 @@ Trigger the workflow manually (`workflow_dispatch`) from the **Actions** tab of 
 
 ## Option B: Copy the Workflow Directly From This Repo
 
-Instead of going through the Marketplace listing, you can copy `.github/workflows/testbot-ci.yml` from this repository as-is — it's the exact same file shown in Option A above. See the main [README.md](../README.md) for the full walkthrough (`configs/testbot-config.json`, the `TESTBOT_JWT_TOKEN` secret, and the workflow's reporting steps).
+Instead of going through the Marketplace listing, you can copy `.github/workflows/testbot-ci.yml` from this repository as-is — it's the exact same file shown in Option A above. See the main [README.md](README.md) for the full walkthrough (`configs/testbot-config.json`, the `TESTBOT_JWT_TOKEN` secret, and the workflow's reporting steps).
 
 ---
 
