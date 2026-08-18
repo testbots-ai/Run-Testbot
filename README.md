@@ -225,43 +225,40 @@ This snippet alone won't run as-is — `jwt_token` and `test_bot_configuration` 
     timeout_minutes: '345'
 ```
 
-`test_bot_configuration` expects a stringified JSON blob (your `configs/testbot-config.json`, optionally with `testBotId` overridden) — see Step 4 for how to produce it.
+`test_bot_configuration` expects a stringified JSON blob — your `configs/testbot-config.json`. Step 4 shows how to produce it.
 
 ## Step 4: Full Example Workflow
 
+Save this as `.github/workflows/testbot.yml`:
+
+```text
+.
+├── .github/
+│   └── workflows/
+│       └── testbot.yml
+│
+└── configs/
+    └── testbot-config.json
+```
+
 ```yaml
-name: Run Test Bot (Marketplace Action)
+name: Run TestBot
 
 on:
   workflow_dispatch:
-    inputs:
-      test_bot_id:
-        description: 'Override testBotId'
-        required: false
-        default: ''
 
 jobs:
   run-testbot:
     runs-on: ubuntu-latest
-    # Test runs can legitimately take up to ~5h45m. Kept a few minutes above the
-    # step's own timeout-minutes/timeout_minutes, and under GitHub's hard,
-    # non-configurable 360-minute (6h) per-job cap for ubuntu-latest runners — a
-    # self-hosted runner (no such cap) is required if you need longer.
     timeout-minutes: 358
 
     steps:
       - uses: actions/checkout@v4
 
-      - name: Prepare Configuration
+      - name: Load Configuration
         id: prepare-config
         run: |
           CONFIG=$(cat configs/testbot-config.json)
-
-          OVERRIDE_ID="${{ github.event.inputs.test_bot_id }}"
-          if [ -n "$OVERRIDE_ID" ]; then
-            CONFIG=$(echo "$CONFIG" | jq --arg id "$OVERRIDE_ID" '.testBotId = $id')
-          fi
-
           EOF=$(dd if=/dev/urandom bs=15 count=1 status=none | base64)
           echo "config<<$EOF" >> $GITHUB_OUTPUT
           echo "$CONFIG" >> $GITHUB_OUTPUT
@@ -270,8 +267,6 @@ jobs:
       - name: Run TestBot
         id: testbot
         uses: testbots-ai/Run-Testbot@v1.0.1
-        # A few minutes above the timeout_minutes input (not equal to it), so GitHub's
-        # own step timeout never races the action's internal polling timeout.
         timeout-minutes: 350
         with:
           jwt_token: ${{ secrets.TESTBOT_JWT_TOKEN }}
@@ -280,6 +275,7 @@ jobs:
           timeout_minutes: '345'
 
       - name: Show Results
+        if: always()
         run: |
           echo "Execution ID: ${{ steps.testbot.outputs.execution_id }}"
           echo "Status: ${{ steps.testbot.outputs.status }}"
@@ -295,15 +291,17 @@ jobs:
         if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: testbot-results
+          name: testbot-results-${{ github.run_number }}
           path: results/
 ```
+
+This is intentionally pinned to `@v1.0.1`, not a floating tag — when a new version is published, bump this one line yourself (e.g. to `@v1.0.2`) to move to it; nothing else in the file changes.
 
 > Unlike the vendored `testbot-ci.yml` workflow, the packaged action writes its JUnit report to a fixed path, `results/junit.xml`, and its raw results JSON to `results/execution-<executionId>.json` (the exact path is returned in the `results_path` output) — different filenames than the vendored workflow's `results/junit-results.xml` and `results/execution-result.json`. It also reads the TestOps executor URL directly out of the `jwt_token` you pass in, so no `TESTOPS_BASE_URL` env var is needed.
 
 ## Step 5: Run It
 
-Trigger the workflow manually (`workflow_dispatch`) from the **Actions** tab of your repository, optionally overriding `test_bot_id`. See [Action Inputs](#action-inputs) and [Action Outputs](#action-outputs) below for the full reference.
+Trigger the workflow manually (`workflow_dispatch`) from the **Actions** tab of your repository. See [Action Inputs](#action-inputs) and [Action Outputs](#action-outputs) below for the full reference.
 
 ---
 
@@ -1253,43 +1251,40 @@ This snippet alone won't run as-is — `jwt_token` and `test_bot_configuration` 
     timeout_minutes: '345'
 ```
 
-`test_bot_configuration` expects a stringified JSON blob — your `configs/testbot-config.json`, optionally with `testBotId` overridden at runtime. Step 4 shows how to produce it.
+`test_bot_configuration` expects a stringified JSON blob — your `configs/testbot-config.json`. Step 4 shows how to produce it.
 
 #### Step 4: Full Example Workflow
 
+Save this as `.github/workflows/testbot.yml`:
+
+```text
+.
+├── .github/
+│   └── workflows/
+│       └── testbot.yml
+│
+└── configs/
+    └── testbot-config.json
+```
+
 ```yaml
-name: Run Test Bot (Marketplace Action)
+name: Run TestBot
 
 on:
   workflow_dispatch:
-    inputs:
-      test_bot_id:
-        description: 'Override testBotId'
-        required: false
-        default: ''
 
 jobs:
   run-testbot:
     runs-on: ubuntu-latest
-    # Test runs can legitimately take up to ~5h45m. Kept a few minutes above the
-    # step's own timeout-minutes/timeout_minutes, and under GitHub's hard,
-    # non-configurable 360-minute (6h) per-job cap for ubuntu-latest runners — a
-    # self-hosted runner (no such cap) is required if you need longer.
     timeout-minutes: 358
 
     steps:
       - uses: actions/checkout@v4
 
-      - name: Prepare Configuration
+      - name: Load Configuration
         id: prepare-config
         run: |
           CONFIG=$(cat configs/testbot-config.json)
-
-          OVERRIDE_ID="${{ github.event.inputs.test_bot_id }}"
-          if [ -n "$OVERRIDE_ID" ]; then
-            CONFIG=$(echo "$CONFIG" | jq --arg id "$OVERRIDE_ID" '.testBotId = $id')
-          fi
-
           EOF=$(dd if=/dev/urandom bs=15 count=1 status=none | base64)
           echo "config<<$EOF" >> $GITHUB_OUTPUT
           echo "$CONFIG" >> $GITHUB_OUTPUT
@@ -1298,8 +1293,6 @@ jobs:
       - name: Run TestBot
         id: testbot
         uses: testbots-ai/Run-Testbot@v1.0.1
-        # A few minutes above the timeout_minutes input (not equal to it), so GitHub's
-        # own step timeout never races the action's internal polling timeout.
         timeout-minutes: 350
         with:
           jwt_token: ${{ secrets.TESTBOT_JWT_TOKEN }}
@@ -1308,6 +1301,7 @@ jobs:
           timeout_minutes: '345'
 
       - name: Show Results
+        if: always()
         run: |
           echo "Execution ID: ${{ steps.testbot.outputs.execution_id }}"
           echo "Status: ${{ steps.testbot.outputs.status }}"
@@ -1323,9 +1317,11 @@ jobs:
         if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: testbot-results
+          name: testbot-results-${{ github.run_number }}
           path: results/
 ```
+
+This is intentionally pinned to `@v1.0.1`, not a floating tag — when a new version is published, bump this one line yourself (e.g. to `@v1.0.2`) to move to it; nothing else in the file changes.
 
 > Unlike the vendored `testbot-ci.yml` workflow (Options A/B), the packaged action writes its JUnit report to a fixed path, `results/junit.xml`, and its raw results JSON to `results/execution-<executionId>.json` (the exact path is returned in the `results_path` output) — different filenames from the vendored workflow's `results/junit-results.xml` and `results/execution-result.json`. It also decodes the TestOps executor URL directly out of the `jwt_token` you pass in, so no `TESTOPS_BASE_URL` env var is needed.
 
