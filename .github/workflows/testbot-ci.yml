@@ -26,12 +26,22 @@ env:
   # TESTOPS_BASE_URL: https://api-dev.automationhq.ai/ahq-test-bot-executor-services
   TESTOPS_BASE_URL: https://api.automationhq.ai/ahq-test-bot-executor-services
   POLL_INTERVAL_SECONDS: 5
-  POLL_TIMEOUT_MINUTES: 20
+  # Test runs can legitimately take up to ~5h45m. This is set right at that ceiling,
+  # while still staying under GitHub's hard, non-configurable 360-minute (6h) per-job
+  # execution cap for ubuntu-latest runners. That cap cannot be raised via
+  # timeout-minutes and applies to the WHOLE job, not just this step — if the test
+  # bot execution itself needs a full 6h, ubuntu-latest cannot support it at all and
+  # a self-hosted runner (no such cap) is required instead.
+  POLL_TIMEOUT_MINUTES: 345
 
 jobs:
   run-testbot:
     runs-on: ubuntu-latest
-    timeout-minutes: 30   # job-level backstop so a hang never eats hours
+    # Job-level backstop above the poll step's own timeout, so a runaway job still
+    # terminates instead of hanging indefinitely. Kept under GitHub's hard 360-minute
+    # cap for ubuntu-latest, leaving a few minutes for setup/report/publish steps
+    # that run before and after the poll step.
+    timeout-minutes: 358
 
     steps:
       - uses: actions/checkout@v4
@@ -67,11 +77,12 @@ jobs:
 
       - name: Trigger and Poll TestBot Execution
         id: testbot
-        # A couple of minutes above POLL_TIMEOUT_MINUTES (not equal to it): if this were set to
-        # the same 20, GitHub's own hard timeout could fire in a race against the in-script
-        # timeout check, killing the step before it writes a clean error_reason. This way the
-        # script's own timeout handling always wins and a "Reason" always makes it to the summary.
-        timeout-minutes: 22
+        # A few minutes above POLL_TIMEOUT_MINUTES (not equal to it): if this were set to
+        # the same value, GitHub's own step timeout could fire in a race against the
+        # in-script timeout check, killing the step before it writes a clean error_reason.
+        # This way the script's own timeout handling always wins and a "Reason" always
+        # makes it to the summary.
+        timeout-minutes: 350
         env:
           JWT_TOKEN: ${{ secrets.TESTBOT_JWT_TOKEN }}
           CONFIG_JSON: ${{ steps.config.outputs.config }}
