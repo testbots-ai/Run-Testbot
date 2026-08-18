@@ -204,7 +204,7 @@ Per the Marketplace listing's **Installation** section, paste this into your `.y
 
 ```yaml
 - name: Run TestBot
-  uses: testbots-ai/Run-Testbot@v1.0.0
+  uses: testbots-ai/Run-Testbot@v1.0.1
 ```
 
 > Learn more about this action in [testbots-ai/Run-Testbot](https://github.com/testbots-ai/Run-Testbot).
@@ -216,7 +216,7 @@ This snippet alone won't run as-is — `jwt_token` and `test_bot_configuration` 
 ```yaml
 - name: Run TestBot
   id: testbot
-  uses: testbots-ai/Run-Testbot@v1.0.0
+  uses: testbots-ai/Run-Testbot@v1.0.1
   timeout-minutes: 350
   with:
     jwt_token: ${{ secrets.TESTBOT_JWT_TOKEN }}
@@ -269,7 +269,7 @@ jobs:
 
       - name: Run TestBot
         id: testbot
-        uses: testbots-ai/Run-Testbot@v1.0.0
+        uses: testbots-ai/Run-Testbot@v1.0.1
         # A few minutes above the timeout_minutes input (not equal to it), so GitHub's
         # own step timeout never races the action's internal polling timeout.
         timeout-minutes: 350
@@ -674,7 +674,7 @@ If using the packaged action (`uses: testbots-ai/Run-Testbot@<version>`), increa
 
 ```yaml
 - name: Run TestBot
-  uses: testbots-ai/Run-Testbot@v1.0.0
+  uses: testbots-ai/Run-Testbot@v1.0.1
   timeout-minutes: 350
   with:
     timeout_minutes: '345'
@@ -1232,7 +1232,7 @@ Per the Marketplace listing's **Installation** section, paste this into your `.y
 
 ```yaml
 - name: Run TestBot
-  uses: testbots-ai/Run-Testbot@v1.0.0
+  uses: testbots-ai/Run-Testbot@v1.0.1
 ```
 
 > Learn more about this action in [testbots-ai/Run-Testbot](https://github.com/testbots-ai/Run-Testbot).
@@ -1244,7 +1244,7 @@ This snippet alone won't run as-is — `jwt_token` and `test_bot_configuration` 
 ```yaml
 - name: Run TestBot
   id: testbot
-  uses: testbots-ai/Run-Testbot@v1.0.0
+  uses: testbots-ai/Run-Testbot@v1.0.1
   timeout-minutes: 350
   with:
     jwt_token: ${{ secrets.TESTBOT_JWT_TOKEN }}
@@ -1297,7 +1297,7 @@ jobs:
 
       - name: Run TestBot
         id: testbot
-        uses: testbots-ai/Run-Testbot@v1.0.0
+        uses: testbots-ai/Run-Testbot@v1.0.1
         # A few minutes above the timeout_minutes input (not equal to it), so GitHub's
         # own step timeout never races the action's internal polling timeout.
         timeout-minutes: 350
