@@ -177,6 +177,136 @@ Copy that file directly into your own repository's `.github/workflows/` director
 
 ---
 
+# Installing via the GitHub Marketplace Action
+
+This is a separate, lighter-weight way to use this action: instead of copying the full bash-based workflow above, you add the pre-built action as a single `uses:` step in your own workflow. It's published on the GitHub Marketplace:
+
+**https://github.com/marketplace/actions/run-testbot**
+
+> **Run TestBot**
+> Run TestBot with JWT-based authentication for CI/CD pipelines
+
+## Step 1: Add the JWT Token Secret
+
+Same as [Step 2](#step-2-add-jwt-token-secret) above — in your own repository:
+
+```text
+Settings → Secrets and Variables → Actions → New Repository Secret
+```
+
+| Secret Name | Description |
+| --- | --- |
+| `TESTBOT_JWT_TOKEN` | JWT Authentication Token |
+
+## Step 2: Copy the Installation Snippet
+
+Per the Marketplace listing's **Installation** section, paste this into your `.yml` file:
+
+```yaml
+- name: Run TestBot
+  uses: testbots-ai/Run-Testbot@v1.0.0
+```
+
+> Learn more about this action in [testbots-ai/Run-Testbot](https://github.com/testbots-ai/Run-Testbot).
+
+This snippet alone won't run as-is — `jwt_token` and `test_bot_configuration` are required inputs (see [Action Inputs](#action-inputs) below), so you need to add a `with:` block.
+
+## Step 3: Add the Required Inputs
+
+```yaml
+- name: Run TestBot
+  id: testbot
+  uses: testbots-ai/Run-Testbot@v1.0.0
+  timeout-minutes: 350
+  with:
+    jwt_token: ${{ secrets.TESTBOT_JWT_TOKEN }}
+    test_bot_configuration: ${{ steps.prepare-config.outputs.config }}
+    poll_interval_seconds: '5'
+    timeout_minutes: '345'
+```
+
+`test_bot_configuration` expects a stringified JSON blob (your `configs/testbot-config.json`, optionally with `testBotId` overridden) — see Step 4 for how to produce it.
+
+## Step 4: Full Example Workflow
+
+```yaml
+name: Run Test Bot (Marketplace Action)
+
+on:
+  workflow_dispatch:
+    inputs:
+      test_bot_id:
+        description: 'Override testBotId'
+        required: false
+        default: ''
+
+jobs:
+  run-testbot:
+    runs-on: ubuntu-latest
+    # Test runs can legitimately take up to ~5h45m. Kept a few minutes above the
+    # step's own timeout-minutes/timeout_minutes, and under GitHub's hard,
+    # non-configurable 360-minute (6h) per-job cap for ubuntu-latest runners — a
+    # self-hosted runner (no such cap) is required if you need longer.
+    timeout-minutes: 358
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Prepare Configuration
+        id: prepare-config
+        run: |
+          CONFIG=$(cat configs/testbot-config.json)
+
+          OVERRIDE_ID="${{ github.event.inputs.test_bot_id }}"
+          if [ -n "$OVERRIDE_ID" ]; then
+            CONFIG=$(echo "$CONFIG" | jq --arg id "$OVERRIDE_ID" '.testBotId = $id')
+          fi
+
+          EOF=$(dd if=/dev/urandom bs=15 count=1 status=none | base64)
+          echo "config<<$EOF" >> $GITHUB_OUTPUT
+          echo "$CONFIG" >> $GITHUB_OUTPUT
+          echo "$EOF" >> $GITHUB_OUTPUT
+
+      - name: Run TestBot
+        id: testbot
+        uses: testbots-ai/Run-Testbot@v1.0.0
+        # A few minutes above the timeout_minutes input (not equal to it), so GitHub's
+        # own step timeout never races the action's internal polling timeout.
+        timeout-minutes: 350
+        with:
+          jwt_token: ${{ secrets.TESTBOT_JWT_TOKEN }}
+          test_bot_configuration: ${{ steps.prepare-config.outputs.config }}
+          poll_interval_seconds: '5'
+          timeout_minutes: '345'
+
+      - name: Show Results
+        run: |
+          echo "Execution ID: ${{ steps.testbot.outputs.execution_id }}"
+          echo "Status: ${{ steps.testbot.outputs.status }}"
+          echo "Results Path: ${{ steps.testbot.outputs.results_path }}"
+
+      - name: Publish Test Results
+        if: always()
+        uses: EnricoMi/publish-unit-test-result-action@v2
+        with:
+          files: results/junit.xml
+
+      - name: Upload Reports
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: testbot-results
+          path: results/
+```
+
+> Unlike the vendored `testbot-ci.yml` workflow, the packaged action writes its JUnit report to a fixed path, `results/junit.xml`, and its raw results JSON to `results/execution-<executionId>.json` (the exact path is returned in the `results_path` output) — different filenames than the vendored workflow's `results/junit-results.xml` and `results/execution-result.json`. It also reads the TestOps executor URL directly out of the `jwt_token` you pass in, so no `TESTOPS_BASE_URL` env var is needed.
+
+## Step 5: Run It
+
+Trigger the workflow manually (`workflow_dispatch`) from the **Actions** tab of your repository, optionally overriding `test_bot_id`. See [Action Inputs](#action-inputs) and [Action Outputs](#action-outputs) below for the full reference.
+
+---
+
 # Rich GitHub Reporting
 
 After execution completes, users can review results directly within GitHub without downloading any files.
@@ -362,7 +492,7 @@ This provides a complete test execution experience directly within GitHub, makin
 | `poll_interval_seconds`  | No       | 5       | Polling interval while execution is running |
 | `timeout_minutes`        | No       | 60      | Maximum wait time for execution completion  |
 
-> The `timeout_minutes` default of `60` is only enough for short runs. TestBot executions can legitimately take up to ~5h45m (see the `.github/workflows/testbot-ci.yml` guidance in [USAGE_GUIDE.md](USAGE_GUIDE.md), which defaults `POLL_TIMEOUT_MINUTES` to `345`). If your runs are long, override `timeout_minutes` accordingly **and** raise your own workflow's job-level `timeout-minutes`, keeping both under GitHub's hard 360-minute (6h) per-job cap for `ubuntu-latest` runners.
+> The action's built-in default, `timeout_minutes: 60`, is only enough for short runs. TestBot executions can legitimately take up to ~5h45m, which is why the [Marketplace Action example above](#step-3-add-the-required-inputs) already sets `timeout_minutes: '345'` with the step's `timeout-minutes: 350` and the job's `timeout-minutes: 358` a few minutes above it (matching the vendored workflow's `POLL_TIMEOUT_MINUTES: 345` — see [USAGE_GUIDE.md](USAGE_GUIDE.md)) — all still under GitHub's hard 360-minute (6h) per-job cap for `ubuntu-latest` runners. If your own runs are shorter, you can safely lower all three.
 
 ---
 
@@ -540,12 +670,17 @@ Verify:
 
 ## Workflow Timeout
 
-If using the packaged action (`uses: testbots-ai/Run-Testbot@<version>`), increase:
+If using the packaged action (`uses: testbots-ai/Run-Testbot@<version>`), increase all three together — see [Step 3](#step-3-add-the-required-inputs) above:
 
 ```yaml
-with:
-  timeout_minutes: '120'
+- name: Run TestBot
+  uses: testbots-ai/Run-Testbot@v1.0.0
+  timeout-minutes: 350
+  with:
+    timeout_minutes: '345'
 ```
+
+...and your job's `timeout-minutes: 358`.
 
 If using the `.github/workflows/testbot-ci.yml` workflow (see [USAGE_GUIDE.md](USAGE_GUIDE.md)), the current defaults are already set right at GitHub's cap:
 
