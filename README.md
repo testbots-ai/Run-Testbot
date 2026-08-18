@@ -22,6 +22,16 @@ This GitHub Action allows you to:
 
 ---
 
+# Getting This Action
+
+This action is published on the **GitHub Marketplace**:
+
+**https://github.com/marketplace/actions/run-testbot**
+
+You can either grab the workflow from the Marketplace listing and drop it straight into your own repository, or copy it directly out of this repository at `.github/workflows/testbot-ci.yml`. Both give you the exact same workflow. For the full copy-pasteable version plus step-by-step setup, see [docs/USAGE_GUIDE.md](docs/USAGE_GUIDE.md).
+
+---
+
 # Prerequisites
 
 Before using this action, ensure you have:
@@ -133,7 +143,7 @@ Create the file:
 .github/workflows/testbot-ci.yml
 ```
 
-Example:
+This repository's own `.github/workflows/testbot-ci.yml` is the reference implementation — see "Recommended Workflow" below for where to get a copy.
 
 ## GitHub Workflow Features
 
@@ -157,68 +167,13 @@ The provided GitHub workflow not only executes your TestBot but also generates a
 
 ## Recommended Workflow
 
-Create the following workflow:
+The current, fully-featured workflow — config validation, resilient polling with clear failure reasons surfaced in the Job Summary, JUnit + Markdown report generation, and GitHub Checks integration — lives in this repository at:
 
-```yaml
-name: Run Test Bot CI/CD
-
-on:
-  workflow_dispatch:
-    inputs:
-      test_bot_id:
-        description: 'Override testBotId'
-        required: false
-        default: ''
-
-jobs:
-  run-testbot:
-    runs-on: ubuntu-latest
-
-    steps:
-      - uses: actions/checkout@v4
-
-      - name: Prepare Configuration
-        id: prepare-config
-        run: |
-          CONFIG=$(cat configs/testbot-config.json)
-
-          OVERRIDE_ID="${{ github.event.inputs.test_bot_id }}"
-          if [ -n "$OVERRIDE_ID" ]; then
-            CONFIG=$(echo "$CONFIG" | jq --arg id "$OVERRIDE_ID" '.testBotId = $id')
-          fi
-
-          EOF=$(dd if=/dev/urandom bs=15 count=1 status=none | base64)
-          echo "config<<$EOF" >> $GITHUB_OUTPUT
-          echo "$CONFIG" >> $GITHUB_OUTPUT
-          echo "$EOF" >> $GITHUB_OUTPUT
-
-      - name: Run TestBot
-        id: testbot
-        uses: ./
-        with:
-          jwt_token: ${{ secrets.TESTBOT_JWT_TOKEN }}
-          test_bot_configuration: ${{ steps.prepare-config.outputs.config }}
-          poll_interval_seconds: '5'
-          timeout_minutes: '60'
-
-      - name: Generate Reports
-        run: |
-          # Generates:
-          # - JUnit XML
-          # - Markdown Report
-          # - GitHub Summary
-
-      - name: Publish Results
-        uses: EnricoMi/publish-unit-test-result-action@v2
-        with:
-          files: results/junit-results.xml
-
-      - name: Upload Reports
-        uses: actions/upload-artifact@v4
-        with:
-          name: testbot-results
-          path: results/
+```text
+.github/workflows/testbot-ci.yml
 ```
+
+Copy that file directly into your own repository's `.github/workflows/` directory. For the complete, copy-pasteable version along with step-by-step setup (including how to get it from the [GitHub Marketplace listing](https://github.com/marketplace/actions/run-testbot)), see [docs/USAGE_GUIDE.md](docs/USAGE_GUIDE.md).
 
 ---
 
@@ -398,12 +353,16 @@ This provides a complete test execution experience directly within GitHub, makin
 
 # Action Inputs
 
+> These inputs apply only when consuming the packaged action directly (`uses: testbots-ai/Run-Testbot@<version>`) as defined in `action.yml`. The workflow documented in [docs/USAGE_GUIDE.md](docs/USAGE_GUIDE.md) and `.github/workflows/testbot-ci.yml` instead reads `configs/testbot-config.json` and the `TESTBOT_JWT_TOKEN` secret directly, and controls polling/timeouts via the `POLL_INTERVAL_SECONDS` / `POLL_TIMEOUT_MINUTES` env vars and job/step `timeout-minutes`.
+
 | Input                    | Required | Default | Description                                 |
 | ------------------------ | -------- | ------- | ------------------------------------------- |
 | `jwt_token`              | Yes      | -       | JWT token used for authentication           |
 | `test_bot_configuration` | Yes      | -       | Full TestBot configuration JSON             |
 | `poll_interval_seconds`  | No       | 5       | Polling interval while execution is running |
 | `timeout_minutes`        | No       | 60      | Maximum wait time for execution completion  |
+
+> The `timeout_minutes` default of `60` is only enough for short runs. TestBot executions can legitimately take up to ~5h45m (see the `.github/workflows/testbot-ci.yml` guidance in [docs/USAGE_GUIDE.md](docs/USAGE_GUIDE.md), which defaults `POLL_TIMEOUT_MINUTES` to `345`). If your runs are long, override `timeout_minutes` accordingly **and** raise your own workflow's job-level `timeout-minutes`, keeping both under GitHub's hard 360-minute (6h) per-job cap for `ubuntu-latest` runners.
 
 ---
 
@@ -581,12 +540,22 @@ Verify:
 
 ## Workflow Timeout
 
-Increase:
+If using the packaged action (`uses: testbots-ai/Run-Testbot@<version>`), increase:
 
 ```yaml
 with:
   timeout_minutes: '120'
 ```
+
+If using the `.github/workflows/testbot-ci.yml` workflow (see [docs/USAGE_GUIDE.md](docs/USAGE_GUIDE.md)), the current defaults are already set right at GitHub's cap:
+
+| Setting | Default | Where |
+| --- | --- | --- |
+| `POLL_TIMEOUT_MINUTES` | `345` | `env:` block — how long the script polls before giving up |
+| Job `timeout-minutes` | `358` | `jobs.run-testbot` — job-level backstop |
+| Step `timeout-minutes` | `350` | "Trigger and Poll TestBot Execution" step |
+
+Keep both `timeout-minutes` values a few minutes above `POLL_TIMEOUT_MINUTES`, and all of them under GitHub's hard 360-minute (6h) per-job cap for `ubuntu-latest` runners — a self-hosted runner has no such cap if you need longer.
 
 Or reduce execution time inside the TestBot.
 
