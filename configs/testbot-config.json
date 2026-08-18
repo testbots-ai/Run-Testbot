@@ -1,176 +1,38 @@
 {
-  "name": "AHQ Premium Grid - Octopod - Web - WIN11 - Chrome",
-  "testBotId": "676c532b-91b4-4ea4-b048-dc9cb3020570",
+  "name": "Github Execution",
+  "testBotId": "71efa1d6-74e7-4453-bbb4-ae6fd14334dd",
   "executionConfiguration": {
-    "baseUrl": "033f9076-aca0-4318-a6be-551ab56cca96",
+    "baseUrl": "207240c3-aaa9-4f09-8952-0696ce3a9ae8",
     "browser": "Chrome",
-    "browserVersion": "150",
+    "browserVersion": "147.0",
     "closeBrowserAfterEachExecution": true,
-    "customProperties": [
-      {
-        "customPropertyId": "9b70c7de-7019-4095-9ee5-67b19aec048e",
-        "name": "URL",
-        "value": "https://octopod.co.in/",
-        "type": "0"
-      },
-      {
-        "customPropertyId": "ed6b007b-391f-4d72-abf7-2476e598022c",
-        "name": "Few",
-        "value": "15",
-        "type": "0"
-      },
-      {
-        "customPropertyId": "b14240d9-e8b1-4fba-bd58-03d6c4851aac",
-        "name": "Username",
-        "value": "1788554433",
-        "type": "0"
-      },
-      {
-        "customPropertyId": "f1eef551-f080-4020-9518-ae2c0adadb9b",
-        "name": "Password",
-        "value": "1234",
-        "type": "0"
-      },
-      {
-        "customPropertyId": "16256f74-0c81-48f2-9667-a9576c8a4a51",
-        "name": "AD Year",
-        "value": "ODD 2025-2026",
-        "type": "0"
-      },
-      {
-        "customPropertyId": "216bdce7-c14c-4f73-9bcc-70a29d9e0772",
-        "name": "Program",
-        "value": "B Arch",
-        "type": "0"
-      },
-      {
-        "customPropertyId": "a0b9db7b-8359-406e-ac7a-4c05d58b9c77",
-        "name": "Standard/Semester",
-        "value": "Semester 1",
-        "type": "0"
-      },
-      {
-        "customPropertyId": "d9c56610-42cc-4d57-bb03-44e90ef6a7f0",
-        "name": "Division/Department",
-        "value": "A",
-        "type": "0"
-      },
-      {
-        "customPropertyId": "332bb18a-f877-4a82-9b11-ebe95e12df78",
-        "name": "AD Timestamp",
-        "value": "bio 07:30:00 - 08:30:00",
-        "type": "0"
-      },
-      {
-        "customPropertyId": "25e4089a-c0dc-4347-bfe2-9373a5ba58f2",
-        "name": "AD Subject",
-        "value": "Design studios (BA01)",
-        "type": "0"
-      },
-      {
-        "customPropertyId": "4a5a1b78-17d1-41e8-999b-88aae002514e",
-        "name": "SM Year",
-        "value": "Even 2025-2026",
-        "type": "0"
-      },
-      {
-        "customPropertyId": "63efd0ca-b10b-4958-ad1c-203e055d41b8",
-        "name": "SM Gender",
-        "value": "Male",
-        "type": "0"
-      },
-      {
-        "customPropertyId": "620bb1ef-7076-4698-8f8b-1b8d75c9187b",
-        "name": "SM Board",
-        "value": "gujrat board",
-        "type": "0"
-      },
-      {
-        "customPropertyId": "8016a566-0ee6-4d33-a299-2fc542e1db71",
-        "name": "ACM - AD",
-        "value": "Attendance Dashboard",
-        "type": "0"
-      },
-      {
-        "customPropertyId": "a2807900-323c-4eab-b5fe-6fe4e2b24861",
-        "name": "ACM - D",
-        "value": "Dashboard",
-        "type": "0"
-      },
-      {
-        "customPropertyId": "df627c7e-746b-4bd1-b296-70f6b96192cc",
-        "name": "Student Master",
-        "value": "Student Masters",
-        "type": "0"
-      },
-      {
-        "customPropertyId": "21402203-ad33-4a75-957c-dec2e7625142",
-        "name": "Academy",
-        "value": "Star College-Uni",
-        "type": "0"
-      },
-      {
-        "customPropertyId": "7fa150b3-12a8-4f51-bbca-f16e572b1d19",
-        "name": "PROC - Category",
-        "value": "Furniture & Fixtures",
-        "type": "0"
-      },
-      {
-        "customPropertyId": "3d71ad18-2a82-47a7-918b-694051e6a945",
-        "name": "PROC - Sub-Category",
-        "value": "Notice Boards & Display Panels",
-        "type": "0"
-      },
-      {
-        "customPropertyId": "7a74016a-fd3d-47f4-920d-f1672c849764",
-        "name": "PROC - Item ( 1 )",
-        "value": "Blue Notice Board Blue color, (8' X 4')",
-        "type": "0"
-      },
-      {
-        "customPropertyId": "8ad1cd79-1a25-4ced-b259-b4eba51fe922",
-        "name": "PROC - Item ( 2 )",
-        "value": "Red Notice Board Red color, (3' X 2')",
-        "type": "0"
-      },
-      {
-        "customPropertyId": "5714fea4-43bb-4985-a9fb-c8f263d61bfd",
-        "name": "PROC - Vendor",
-        "value": "CHETAN",
-        "type": "0"
-      },
-      {
-        "customPropertyId": "98fbbc14-4f1f-4177-b4d4-3888c182c8b3",
-        "name": "PROC - Allocate To",
-        "value": "B.Com Building",
-        "type": "0"
-      }
-    ],
+    "customProperties": [],
     "type": "Web",
-    "gridId": "961516f3-bb89-4d3b-b25b-570aeb910106",
+    "gridId": "16678db2-3d7f-41d5-98fe-5af269f18964",
     "excludeToBeRepairedTest": false,
     "gridUrl": "",
     "gridUrlForExecution": "",
-    "osType": "WIN11",
-    "resolution": "1920x1200",
+    "osType": "Linux",
+    "resolution": "1920x1080",
     "screenshotAfterEachStep": false,
     "screenshotOnError": true,
-    "screenshotOnFinish": true,
-    "timeout": 40,
-    "waitForElementTimeout": 30,
+    "screenshotOnFinish": false,
+    "timeout": 30,
+    "waitForElementTimeout": 10,
     "delayBetweenSteps": 0,
     "numberOfRetries": 0,
     "browserConfigs": [
       {
-        "osType": "WIN11",
+        "osType": "Linux",
         "browser": "Chrome",
-        "browserVersion": "150",
-        "resolution": "1920x1200",
-        "gridId": "961516f3-bb89-4d3b-b25b-570aeb910106",
+        "browserVersion": "147.0",
+        "resolution": "1920x1080",
+        "gridId": "16678db2-3d7f-41d5-98fe-5af269f18964",
         "gridUrl": null,
         "profileId": null,
         "profileName": null
       }
-    ]
+    ],
+    "targetBranchName": "utap-sanity-build"
   }
 }
