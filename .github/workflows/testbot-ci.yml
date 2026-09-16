@@ -471,11 +471,20 @@ jobs:
           CONFIG_ERROR_REASON: ${{ steps.config.outputs.error_reason }}
           TESTBOT_ERROR_REASON: ${{ steps.testbot.outputs.error_reason }}
           REPORT_ERROR_REASON: ${{ steps.report.outputs.error_reason }}
+          REPO_OWNER: ${{ github.repository_owner }}
+          REPO_NAME: ${{ github.event.repository.name }}
         run: |
           # Reads reasons via env vars (not inlined into the script text) since these can
           # contain raw API error bodies — untrusted content that must never be interpolated
           # directly into a run: block.
           REASON="${CONFIG_ERROR_REASON}${TESTBOT_ERROR_REASON}${REPORT_ERROR_REASON}"
+
+          # This is GitHub Pages' standard URL pattern for a project site served
+          # from a branch (what the "Deploy Allure Report to GitHub Pages" step
+          # sets up) — it's always this shape, not something the API returns.
+          # Requires GitHub Pages to actually be enabled once on this repo:
+          # Settings → Pages → Source: "Deploy from a branch" → gh-pages / (root).
+          ALLURE_REPORT_URL="https://${REPO_OWNER}.github.io/${REPO_NAME}/"
 
           {
             echo "## TestBot Run Status"
@@ -484,6 +493,7 @@ jobs:
             echo "|-------|-------|"
             echo "| Execution ID | ${EXECUTION_ID:-N/A} |"
             echo "| Status | ${FINAL_STATUS:-DID NOT COMPLETE} |"
+            echo "| Allure Report | [${ALLURE_REPORT_URL}](${ALLURE_REPORT_URL}) (requires GitHub Pages enabled once — see README) |"
           } >> "$GITHUB_STEP_SUMMARY"
 
           if [ -n "$REASON" ]; then

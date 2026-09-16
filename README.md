@@ -311,7 +311,16 @@ jobs:
         env:
           EXECUTION_ID: ${{ steps.testbot.outputs.execution_id }}
           FINAL_STATUS: ${{ steps.testbot.outputs.status }}
+          REPO_OWNER: ${{ github.repository_owner }}
+          REPO_NAME: ${{ github.event.repository.name }}
         run: |
+          # This is GitHub Pages' standard URL pattern for a project site served
+          # from a branch (what the "Deploy Allure Report to GitHub Pages" step
+          # sets up) — it's always this shape, not something the API returns.
+          # Requires GitHub Pages to actually be enabled once on this repo:
+          # Settings → Pages → Source: "Deploy from a branch" → gh-pages / (root).
+          ALLURE_REPORT_URL="https://${REPO_OWNER}.github.io/${REPO_NAME}/"
+
           {
             echo "## TestBot Run Status"
             echo ""
@@ -319,6 +328,7 @@ jobs:
             echo "|-------|-------|"
             echo "| Execution ID | ${EXECUTION_ID:-N/A} |"
             echo "| Status | ${FINAL_STATUS:-DID NOT COMPLETE} |"
+            echo "| Allure Report | [${ALLURE_REPORT_URL}](${ALLURE_REPORT_URL}) (requires GitHub Pages enabled once — see README) |"
           } >> "$GITHUB_STEP_SUMMARY"
           echo "" >> "$GITHUB_STEP_SUMMARY"
 
