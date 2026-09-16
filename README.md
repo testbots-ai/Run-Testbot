@@ -186,7 +186,7 @@ jobs:
 
       # Generate Allure Report via Action
       - name: Generate Allure Report
-        uses: simple-elf/allure-report-action@v2
+        uses: simple-elf/allure-report-action@v1.15
         if: always()
         with:
           allure_results: allure-results
