@@ -1,6 +1,6 @@
 {
   "name": "testbot-action",
-  "version": "1.0.1",
+  "version": "1.0.2",
   "description": "GitHub Action to run AutomationHQ Test Bot with JWT authentication",
   "main": "dist/index.js",
   "scripts": {

@@ -100,7 +100,7 @@ jobs:
 
       - name: Run TestBot
         id: testbot
-        uses: testbots-ai/Run-Testbot@v1.0.1
+        uses: testbots-ai/Run-Testbot@v1.0.2
         timeout-minutes: 350
         with:
           jwt_token: ${{ secrets.TESTBOT_JWT_TOKEN }}
@@ -239,10 +239,10 @@ These are set right under GitHub's hard 360-minute (6h) cap for `ubuntu-latest` 
 This line pins the workflow to a specific version:
 
 ```yaml
-uses: testbots-ai/Run-Testbot@v1.0.1
+uses: testbots-ai/Run-Testbot@v1.0.2
 ```
 
-Whenever a new version is released, that's the **only line you need to change** — bump `v1.0.1` to the new version (e.g. `v1.0.2`). Nothing else in the file changes.
+Whenever a new version is released, that's the **only line you need to change** — bump `v1.0.2` to the new version (e.g. `v1.0.3`). Nothing else in the file changes.
 
 ---
 

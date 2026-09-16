@@ -341,6 +341,14 @@ jobs:
             exit 1
           fi
 
+      # Generate Allure Report via Action
+      - name: Generate Allure Report
+        uses: simple-elf/allure-report-action@v2
+        if: always()
+        with:
+          allure_results: allure-results
+          allure_history: allure-history
+
       - name: Publish GitHub Job Summary
         if: always()
         env:
