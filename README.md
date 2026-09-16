@@ -184,6 +184,14 @@ jobs:
             echo "::warning::Report generation failed: $(echo "$REPORT_OUTPUT" | tail -c 500 | tr '\n\r' '  ')"
           fi
 
+      # Generate Allure Report via Action
+      - name: Generate Allure Report
+        uses: simple-elf/allure-report-action@v2
+        if: always()
+        with:
+          allure_results: allure-results
+          allure_history: allure-history
+
       - name: Publish GitHub Job Summary
         if: always()
         env:
@@ -219,6 +227,8 @@ jobs:
 ```
 
 Trigger it from the **Actions** tab → **Run TestBot** → **Run workflow**.
+
+> **Note on the Allure Report step:** this step expects Allure's own result format in an `allure-results/` folder. This workflow doesn't generate that format — it produces `results/junit.xml` and `results/report.md` instead. Until a step is added that converts those into `allure-results/`, this step has nothing to process.
 
 ---
 
