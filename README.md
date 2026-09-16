@@ -77,7 +77,9 @@ on:
   workflow_dispatch:
 
 permissions:
-  contents: read
+  # write (not read) is required so the "Deploy Allure Report to GitHub
+  # Pages" step below can push the generated report to the gh-pages branch.
+  contents: write
   checks: write
   pull-requests: write
 
@@ -88,6 +90,18 @@ jobs:
 
     steps:
       - uses: actions/checkout@v4
+
+      # Pulls prior Allure report history (if any) from the gh-pages branch
+      # so this run's report shows trends across runs, not just this one.
+      # continue-on-error: the gh-pages branch won't exist yet on the very
+      # first run, which would otherwise fail this step.
+      - name: Get Allure History
+        uses: actions/checkout@v4
+        if: always()
+        continue-on-error: true
+        with:
+          ref: gh-pages
+          path: gh-pages
 
       - name: Load Configuration
         id: prepare-config
@@ -184,6 +198,70 @@ jobs:
             echo "::warning::Report generation failed: $(echo "$REPORT_OUTPUT" | tail -c 500 | tr '\n\r' '  ')"
           fi
 
+      # simple-elf/allure-report-action (below) only formats an existing
+      # allure-results/ folder — it doesn't generate one. This step converts
+      # the TestBot JSON results into Allure's own per-test result format
+      # (one <uuid>-result.json file per test script) so there's real data
+      # for it to render instead of an empty report.
+      - name: Generate Allure Results
+        if: always() && steps.testbot.outputs.results_path != ''
+        run: |
+          python3 <<'PY'
+          import json
+          import time
+          import uuid
+          from pathlib import Path
+
+          json_file = Path("${{ steps.testbot.outputs.results_path }}")
+
+          with open(json_file, "r", encoding="utf-8") as f:
+              data = json.load(f)
+
+          out_dir = Path("allure-results")
+          out_dir.mkdir(exist_ok=True)
+
+          now_ms = int(time.time() * 1000)
+
+          def allure_status(result_status):
+              return "passed" if result_status == "PASSED" else "failed"
+
+          for ts in data.get("testSuiteResults", []):
+              suite_name = ts.get("testSuiteName", "Suite")
+              for script in ts.get("testScriptResults", []):
+                  script_name = script.get("testScriptName", "Test")
+
+                  steps = []
+                  for iteration in script.get("iterations", []):
+                      for step in iteration.get("stepResults", []):
+                          steps.append({
+                              "name": f"{step.get('sequence')}: {step.get('testStepName', 'Step')}",
+                              "status": allure_status(step.get("resultStatus")),
+                              "stage": "finished",
+                              "start": now_ms,
+                              "stop": now_ms,
+                          })
+
+                  result = {
+                      "uuid": str(uuid.uuid4()),
+                      "historyId": f"{suite_name}::{script_name}",
+                      "name": script_name,
+                      "status": allure_status(script.get("resultStatus")),
+                      "stage": "finished",
+                      "start": now_ms,
+                      "stop": now_ms,
+                      "labels": [
+                          {"name": "suite", "value": suite_name},
+                          {"name": "framework", "value": "AutomationHQ TestBot"},
+                      ],
+                      "steps": steps,
+                  }
+
+                  result_file = out_dir / f"{result['uuid']}-result.json"
+                  result_file.write_text(json.dumps(result), encoding="utf-8")
+
+          print(f"Generated Allure results in {out_dir}")
+          PY
+
       # Generate Allure Report via Action
       - name: Generate Allure Report
         uses: simple-elf/allure-report-action@v1.15
@@ -191,6 +269,18 @@ jobs:
         with:
           allure_results: allure-results
           allure_history: allure-history
+
+      # Publishes allure-history (this run's report + prior history) to the
+      # gh-pages branch, which is what actually gives the report a URL.
+      # Requires GitHub Pages enabled on this repo: Settings → Pages →
+      # Source: "Deploy from a branch" → Branch: gh-pages / (root).
+      - name: Deploy Allure Report to GitHub Pages
+        if: always()
+        uses: peaceiris/actions-gh-pages@v4
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          publish_dir: allure-history
+          keep_files: true
 
       - name: Publish GitHub Job Summary
         if: always()
@@ -228,7 +318,25 @@ jobs:
 
 Trigger it from the **Actions** tab → **Run TestBot** → **Run workflow**.
 
-> **Note on the Allure Report step:** this step expects Allure's own result format in an `allure-results/` folder. This workflow doesn't generate that format — it produces `results/junit.xml` and `results/report.md` instead. Until a step is added that converts those into `allure-results/`, this step has nothing to process.
+---
+
+## 4. Enable GitHub Pages (for the Allure Report)
+
+One-time setup, needed for the Allure Report step to produce a real, browsable report URL:
+
+```text
+Repo → Settings → Pages → Source: "Deploy from a branch" → Branch: gh-pages / (root) → Save
+```
+
+The `gh-pages` branch doesn't need to exist yet — the workflow's **Deploy Allure Report to GitHub Pages** step creates and pushes to it automatically on the first run.
+
+**Where to see the report:** after a run completes, open:
+
+```text
+https://<your-github-username-or-org>.github.io/<your-repo-name>/
+```
+
+It may take a minute or two after the first run for Pages to finish publishing. Every subsequent run updates this same URL in place, and keeps up to the last 20 runs' history (via `keep_reports: 20`, the action's default) so you can see pass/fail trends over time, not just the latest run.
 
 ---
 
