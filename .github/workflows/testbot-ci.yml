@@ -60,6 +60,20 @@ jobs:
           ref: gh-pages
           path: gh-pages
 
+      # actions/checkout always runs "git init" before fetching, so even a
+      # FAILED checkout above (e.g. gh-pages branch doesn't exist yet on the
+      # first run) leaves a broken .git/ folder inside gh-pages/. If that
+      # gets left in place, the Allure report action's Docker container (root
+      # inside the container) later copies it into allure-history/ as
+      # root-owned files, which the gh-pages deploy step (runs as the
+      # non-root "runner" user) can't strip out — corrupting its own orphan
+      # git checkout and making it push to the wrong branch. Removing it here
+      # unconditionally (works whether the checkout above succeeded or not)
+      # prevents that entirely.
+      - name: Strip .git From Allure History Checkout
+        if: always()
+        run: rm -rf gh-pages/.git
+
       - name: Load Config
         id: config
         run: |
@@ -426,6 +440,16 @@ jobs:
         with:
           allure_results: allure-results
           allure_history: allure-history
+
+      # Second layer of defense against the same root-owned-.git problem
+      # described above the "Strip .git From Allure History Checkout" step:
+      # if the Allure report action's container ever copies a .git/ folder
+      # into allure-history/ some other way, it'd be root-owned and this
+      # step's own "rm" (running as the non-root "runner" user) can't remove
+      # it — sudo is needed regardless of ownership.
+      - name: Strip Any Nested .git From Allure History
+        if: always()
+        run: sudo rm -rf allure-history/.git
 
       # Publishes allure-history (this run's report + prior history) to the
       # gh-pages branch, which is what actually gives the report a URL.
